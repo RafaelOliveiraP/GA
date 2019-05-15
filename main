@@ -1,0 +1,138 @@
+import random
+
+POPULATION_SIZE = 50
+NUMERO_GENES = 9
+
+custo = [60, 40, 40, 30, 20, 20, 25, 70, 50, 20]
+
+#faz com que o cromossomo não ultrapasse o custo
+def corrigirCromossomo(cromossomo):
+    novo = cromossomo
+    total = 0
+    for x in range(NUMERO_GENES):
+        if cromossomo[x] != 0:
+            total += custo[x]
+        if total > 125:
+            cromossomo[x] = 0
+    return novo
+
+#gera um cromossomo com números aleatórios como genes sem obedecer orçamento
+def gerarCromossomo():
+    cromossomo = []
+    for x in range(NUMERO_GENES):
+        digito = random.randint(0, 3)
+        cromossomo.append(digito)
+    novo = corrigirCromossomo(cromossomo)
+    return novo
+
+#definição de um indivíduo
+class Individuo:
+
+    def __init__(self, cromossomo):
+        self.cromossomo = cromossomo
+        self.fitness = 0
+
+#definição da população inicial
+populacao = []
+for x in range(POPULATION_SIZE):
+    teste = Individuo(gerarCromossomo())
+    populacao.append(teste)
+
+#criação da matriz V
+V = [[10, 10, 5], [8, 10, 6], [6, 4, 8], [5, 9, 1], [7, 7, 5], [8, 6, 2], [6, 6, 4], [9, 8, 3], [6, 7, 5], [10, 10, 7]]
+
+#criação da matriz de relevância
+relevancia = [3, 4, 2]
+
+#cálculo da importância, a entrada deve ter o índice do requisito a partir de 0
+def gerarImportancia(V, relevancia, requisito):
+    importancia = relevancia[0] * V[requisito][0] + relevancia[1] * V[requisito][1] + relevancia[2] * V[requisito][2]
+    return importancia
+
+#número de releases
+P=3
+
+#xi é a alocação, se xi = 0 não está alocado a release alguma
+
+#criação do vetor de riscos
+risco = [3, 6, 2, 6, 4, 8, 9, 7, 6, 6]
+
+#calcular score
+def gerarScore(solucao):
+    z = solucao
+    scoreTotal = int(0)
+    for x in range(NUMERO_GENES):
+        y = 0
+        if populacao[z].cromossomo[x] != 0:
+            y = 1
+        importancia = gerarImportancia(V, relevancia, x)
+        scoreParcial \
+            = (((importancia * (P - populacao[z].cromossomo[x] + 1)) - (risco[x] * populacao[z].cromossomo[x])) * y)
+        scoreTotal += scoreParcial
+    return scoreTotal
+
+#atribuir fitness a todos os membros da população
+for x in range(POPULATION_SIZE):
+    populacao[x].fitness = gerarScore(x)
+
+#seleção do tipo torneio
+def selecionar(populacao):
+    selecionados = []
+    copia = populacao.copy()
+
+    for x in range(2):
+        individuo1 = random.randint(0, len(copia)-1)
+        individuo2 = random.randint(0, len(copia)-1)
+
+        #garantir que individuos diferentes foram escolhidos
+        while individuo1 == individuo2:
+            individuo2 = random.randint(0, len(copia)-1)
+
+        if  copia[individuo1].fitness > copia[individuo2].fitness:
+            selecionados.append(copia[individuo1])
+            copia.pop(individuo1)
+
+        else:
+            selecionados.append(copia[individuo2])
+            copia.pop(individuo2)
+
+    return selecionados
+
+
+# one-point crossover
+def crossover(individuo1, individuo2):
+    ponto = random.randint(1, NUMERO_GENES - 2)
+    novo = []
+    for x in range(ponto):
+        novo.append(individuo1.cromossomo[x])
+    for x in range(ponto, NUMERO_GENES):
+        novo.append(individuo2.cromossomo[x])
+    corrigido = corrigirCromossomo(novo)
+    retornar = Individuo(corrigido)
+    return retornar
+
+#código principal
+
+#condição de parada: 50 gerações
+for x in range(50):
+    print("Geração " + str(x + 1) + "\n")
+    populacaoNova = []
+    for y in range(POPULATION_SIZE):
+        #seleção
+        selecionados = selecionar(populacao)
+        #crossover
+        novo = crossover(selecionados[0], selecionados[1])
+        populacaoNova.append(novo)
+    populacao = populacaoNova
+
+    # atribuir fitness a todos os membros da população
+    for z in range(POPULATION_SIZE):
+        populacao[z].fitness = gerarScore(z)
+
+    #mostrar cromossomos
+    for x in range(len(populacao)):
+        print("\nIndividuo " + str(x + 1))
+        atual = populacao[x]
+        for y in range(NUMERO_GENES):
+            print(atual.cromossomo[y], end='')
+        print("\nScore do individuo " + str(x + 1) + ": " + str(populacao[x].fitness))
