@@ -1,6 +1,6 @@
 import random
 
-POPULATION_SIZE = 50
+POPULATION_SIZE = 100
 NUMERO_GENES = 9
 
 custo = [60, 40, 40, 30, 20, 20, 25, 70, 50, 20]
@@ -8,15 +8,28 @@ custo = [60, 40, 40, 30, 20, 20, 25, 70, 50, 20]
 #faz com que o cromossomo não ultrapasse o custo
 def corrigirCromossomo(cromossomo):
     novo = cromossomo
-    total = 0
+    custo1 = 0
+    custo2 = 0
+    custo3 = 0
     for x in range(NUMERO_GENES):
-        if cromossomo[x] != 0:
-            total += custo[x]
-        if total > 125:
-            cromossomo[x] = 0
+        if cromossomo[x] == 1:
+            if (custo1 + custo[x]) > 125:
+                novo[x] = 0
+            else:
+                custo1 += custo[x]
+        if cromossomo[x] == 2:
+            if (custo2 + custo[x]) > 125:
+                novo[x] = 0
+            else:
+                custo2 += custo[x]
+        if cromossomo[x] == 3:
+            if (custo3 + custo[x]) > 125:
+                novo[x] = 0
+            else:
+                custo3 += custo[x]
     return novo
 
-#gera um cromossomo com números aleatórios como genes sem obedecer orçamento
+#gera um cromossomo com números aleatórios
 def gerarCromossomo():
     cromossomo = []
     for x in range(NUMERO_GENES):
@@ -101,15 +114,29 @@ def selecionar(populacao):
 
 # one-point crossover
 def crossover(individuo1, individuo2):
-    ponto = random.randint(1, NUMERO_GENES - 2)
-    novo = []
-    for x in range(ponto):
-        novo.append(individuo1.cromossomo[x])
-    for x in range(ponto, NUMERO_GENES):
-        novo.append(individuo2.cromossomo[x])
-    corrigido = corrigirCromossomo(novo)
-    retornar = Individuo(corrigido)
-    return retornar
+    retornar = []
+    for x in range(2):
+        ponto = random.randint(1, NUMERO_GENES - 2)
+        novo = []
+        for x in range(ponto):
+            novo.append(individuo1.cromossomo[x])
+        for x in range(ponto, NUMERO_GENES):
+            novo.append(individuo2.cromossomo[x])
+        #mutação
+        probabilidade = random.randint(0, 100)
+        if probabilidade < 5:
+            geneMutacao = random.randint(0, 3)
+            posicao = random.randint(0, 8)
+            novo[posicao] = geneMutacao
+        corrigido = corrigirCromossomo(novo)
+        retornar.append(Individuo(corrigido))
+    #taxa de cruzamento
+    probabilidade = random.randint(0, 100)
+    if probabilidade > 50:
+        retornar2 = [individuo1, individuo2]
+        return retornar2
+    else:
+        return retornar
 
 #código principal
 
@@ -117,12 +144,13 @@ def crossover(individuo1, individuo2):
 for x in range(50):
     print("Geração " + str(x + 1) + "\n")
     populacaoNova = []
-    for y in range(POPULATION_SIZE):
+    for y in range(int(POPULATION_SIZE/2)):
         #seleção
         selecionados = selecionar(populacao)
         #crossover
         novo = crossover(selecionados[0], selecionados[1])
-        populacaoNova.append(novo)
+        populacaoNova.append(novo[0])
+        populacaoNova.append(novo[1])
     populacao = populacaoNova
 
     # atribuir fitness a todos os membros da população
