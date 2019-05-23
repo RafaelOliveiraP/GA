@@ -1,7 +1,8 @@
 import random
+import statistics
 
 POPULATION_SIZE = 100
-NUMERO_GENES = 9
+NUMERO_GENES = 10
 
 custo = [60, 40, 40, 30, 20, 20, 25, 70, 50, 20]
 
@@ -141,7 +142,8 @@ def crossover(individuo1, individuo2):
 #código principal
 
 #condição de parada: 50 gerações
-for x in range(50):
+geracoes = 50
+for x in range(geracoes):
     print("Geração " + str(x + 1) + "\n")
     populacaoNova = []
     for y in range(int(POPULATION_SIZE/2)):
@@ -158,9 +160,27 @@ for x in range(50):
         populacao[z].fitness = gerarScore(z)
 
     #mostrar cromossomos
-    for x in range(len(populacao)):
+    '''for x in range(len(populacao)):
         print("\nIndividuo " + str(x + 1))
         atual = populacao[x]
         for y in range(NUMERO_GENES):
             print(atual.cromossomo[y], end='')
-        print("\nScore do individuo " + str(x + 1) + ": " + str(populacao[x].fitness))
+        print("\nScore do individuo " + str(x + 1) + ": " + str(populacao[x].fitness))'''
+
+    maior = populacao[0]
+    menor = populacao[0]
+    lista = []
+    for x in range(len(populacao)):
+        lista.append(populacao[x].fitness)
+        if populacao[x].fitness > maior.fitness:
+            maior = populacao[x]
+        if populacao[x].fitness < menor.fitness:
+            menor = populacao[x]
+    print("Média: " + str(statistics.mean(lista)))
+    print("Desvio padrão: " + str(statistics.stdev(lista)))
+    print("Menor: " + str(menor.fitness))
+    print("Maior: " + str(maior.fitness))
+    print("Genes do maior: ")
+    for y in range(NUMERO_GENES):
+        print(maior.cromossomo[y], end='')
+    print("\n")
